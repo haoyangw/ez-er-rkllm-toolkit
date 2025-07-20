@@ -8,7 +8,8 @@ import os
 
 class RKLLMRemotePipeline:
     def __init__(self, model_id="", lora_id="", platform="rk3588", qtype="w8a8",
-    			 hybrid_rate="0.0", library_type="HF", optimization=1, max_context=""):
+    			 quantized_algorithm="normal", hybrid_rate="0.0", library_type="HF", optimization=1,
+    			 max_context=""):
         """
         Initialize primary values for pipeline class.
 
@@ -18,6 +19,9 @@ class RKLLMRemotePipeline:
         :param optimization: 1 means "optimize model" and 0 means "don't optimize" - may incrase performance,
             at the expense of accuracy
         :param qtype: either a string or list of quantization types
+        :param quantized_algorithm: Quantization accuracy optimization algorithm,
+            options are 'normal', 'grq' and 'gdq'. 'normal' supports all quantization types,
+            while 'grq' and 'gdq' only support 'w4a16' and grouped 'w4a16' quantization
         :param hybrid_rate: block(group-wise quantization) ratio, whose value is between 
             0 and 1, 0 indicating the disable of mixed quantization
         :param max_context: Maximum context length for converted model, up to 16,384 and
@@ -27,6 +31,7 @@ class RKLLMRemotePipeline:
         self.lora_id = lora_id
         self.platform = platform
         self.qtype = qtype
+        self.quantized_algorithm = quantized_algorithm
         self.hybrid_rate = hybrid_rate
         self.library_type = library_type
         self.optimization = optimization
@@ -128,15 +133,16 @@ class RKLLMRemotePipeline:
         if self.max_context:
         	self.max_context = int(self.max_context)
         	status = self.rkllm.build(do_quantization=True, optimization_level=self.optimization,
-        							quantized_dtype=self.qtype, hybrid_rate=self.hybrid_rate,
-        							target_platform=self.platform, num_npu_core=self.npu_cores,
-        							extra_qparams=self.qparams, dataset=self.dataset,
-        							max_context=self.max_context)
+        							quantized_dtype=self.qtype, quantized_algorithm=self.quantized_algorithm,
+        							hybrid_rate=self.hybrid_rate, target_platform=self.platform,
+        							num_npu_core=self.npu_cores, extra_qparams=self.qparams,
+        							dataset=self.dataset, max_context=self.max_context)
         else:
         	status = self.rkllm.build(do_quantization=True, optimization_level=self.optimization,
-        							quantized_dtype=self.qtype, hybrid_rate=self.hybrid_rate,
-        							target_platform=self.platform, num_npu_core=self.npu_cores,
-        							extra_qparams=self.qparams, dataset=self.dataset)
+        							quantized_dtype=self.qtype, quantized_algorithm=self.quantized_algorithm,
+        							hybrid_rate=self.hybrid_rate, target_platform=self.platform,
+        							num_npu_core=self.npu_cores, extra_qparams=self.qparams,
+        							dataset=self.dataset)
         if status != 0:
             raise RuntimeError(f"Failed to build model: {status}")
         else:
