@@ -7,7 +7,8 @@ import shutil
 import os
 
 class RKLLMRemotePipeline:
-    def __init__(self, model_id="", lora_id="", platform="rk3588", qtype="w8a8", hybrid_rate="0.0", library_type="HF", optimization=1):
+    def __init__(self, model_id="", lora_id="", platform="rk3588", qtype="w8a8",
+    			 hybrid_rate="0.0", library_type="HF", optimization=1, max_context=""):
         """
         Initialize primary values for pipeline class.
 
@@ -19,6 +20,8 @@ class RKLLMRemotePipeline:
         :param qtype: either a string or list of quantization types
         :param hybrid_rate: block(group-wise quantization) ratio, whose value is between 
             0 and 1, 0 indicating the disable of mixed quantization
+        :param max_context: Maximum context length for converted model, up to 16,384 and
+            must be divisible by 32
         """
         self.model_id = model_id
         self.lora_id = lora_id
@@ -27,6 +30,7 @@ class RKLLMRemotePipeline:
         self.hybrid_rate = hybrid_rate
         self.library_type = library_type
         self.optimization = optimization
+        self.max_context = max_context
 
     @staticmethod
     def mkpath(path):
@@ -72,7 +76,7 @@ class RKLLMRemotePipeline:
             self.lora_dir = f"./models/{self.lora_name}/"
             self.export_name = f"{self.model_name}-{self.lora_name}-{self.name_suffix}"
             self.export_path = f"./models/{self.model_name}-{self.lora_name}-{self.platform}/"
-        self.rkllm_version = "1.1.4"
+        self.rkllm_version = "1.2.0"
 
     def remote_pipeline_to_local(self):
         '''
@@ -120,9 +124,16 @@ class RKLLMRemotePipeline:
             raise RuntimeError("Must be something wrong with the selector! Try again!")
 
         print(f"Building {self.model_name} with {self.qtype} quantization and optmization level {self.optimization}")
-        status = self.rkllm.build(optimization_level=self.optimization, quantized_dtype=self.qtype, 
-                                    target_platform=self.platform, num_npu_core=self.npu_cores, 
-                                    extra_qparams=self.qparams, dataset=self.dataset)
+        if self.max_context:
+        	status = self.rkllm.build(do_quantization=True, optimization_level=self.optimization,
+        							quantized_dtype=self.qtype, target_platform=self.platform,
+        							num_npu_core=self.npu_cores, extra_qparams=self.qparams, 
+        							dataset=self.dataset, max_context=self.max_context)
+        else:
+        	status = self.rkllm.build(do_quantization=True, optimization_level=self.optimization,
+        							quantized_dtype=self.qtype, target_platform=self.platform,
+        							num_npu_core=self.npu_cores, extra_qparams=self.qparams, 
+        							dataset=self.dataset)
         if status != 0:
             raise RuntimeError(f"Failed to build model: {status}")
         else:
@@ -289,13 +300,20 @@ if __name__ == "__main__":
     optimizations = ["0", "1"]
 
     platform = "rk3588"
+    
+    """
+    Maximum context length for converted model. An integer up to 16,384 that is divisible by 32.
+    Leave blank to use whatever default rkllm-toolkit sets.
+    """
+    max_context = ""
 
     for model in model_ids:
         for qtype in qtypes:
             for hybrid_rate in hybrid_rates:
                 for opt in optimizations:
                     rk = RKLLMRemotePipeline(model_id=model, lora_id="", platform=platform, qtype=qtype, 
-                                            hybrid_rate=hybrid_rate, library_type="HF", optimization=opt)
+                                            hybrid_rate=hybrid_rate, library_type="HF", optimization=opt,
+                                            max_context=max_context)
                     rk.build_vars()
                     hf = HubHelpers(platform=rk.platform, model_id=model, lora_id=rk.lora_id, 
                         qtype=qtypes, rkllm_version=rk.rkllm_version)
