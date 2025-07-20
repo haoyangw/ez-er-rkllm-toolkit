@@ -177,6 +177,7 @@ class RKLLMRemotePipeline:
 
         print(f"Building {self.model_name} with {self.qtype} quantization and optmization level {self.optimization}")
         if self.max_context:
+        	self.max_context = int(self.max_context)
         	status = self.rkllm.build(do_quantization=True, optimization_level=self.optimization,
         							quantized_dtype=self.qtype, target_platform=self.platform,
         							num_npu_core=self.npu_cores, extra_qparams=self.qparams, 
