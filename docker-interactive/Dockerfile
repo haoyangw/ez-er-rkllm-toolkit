@@ -12,9 +12,9 @@ RUN DEBIAN_FRONTEND=noninteractive \
   && mkdir /root/wheels \
   && mkdir -p /root/toolkit/models
 
-COPY ./rkllm_toolkit-1.1.2-cp310-cp310-linux_x86_64.whl /root/wheels
+COPY ./rkllm_toolkit-1.1.4-cp310-cp310-linux_x86_64.whl /root/wheels
 
-RUN python3 -m pip install inquirer /root/wheels/rkllm_toolkit-1.1.2-cp310-cp310-linux_x86_64.whl xformers
+RUN python3 -m pip install inquirer /root/wheels/rkllm_toolkit-1.1.4-cp310-cp310-linux_x86_64.whl xformers
 
 COPY ./interactive_pipeline.py /root/toolkit/
 
