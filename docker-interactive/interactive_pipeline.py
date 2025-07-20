@@ -179,14 +179,15 @@ class RKLLMRemotePipeline:
         if self.max_context:
         	self.max_context = int(self.max_context)
         	status = self.rkllm.build(do_quantization=True, optimization_level=self.optimization,
-        							quantized_dtype=self.qtype, target_platform=self.platform,
-        							num_npu_core=self.npu_cores, extra_qparams=self.qparams, 
-        							dataset=self.dataset, max_context=self.max_context)
+        							quantized_dtype=self.qtype, hybrid_rate=self.hybrid_rate,
+        							target_platform=self.platform, num_npu_core=self.npu_cores,
+        							extra_qparams=self.qparams, dataset=self.dataset,
+        							max_context=self.max_context)
         else:
         	status = self.rkllm.build(do_quantization=True, optimization_level=self.optimization,
-        							quantized_dtype=self.qtype, target_platform=self.platform,
-        							num_npu_core=self.npu_cores, extra_qparams=self.qparams, 
-        							dataset=self.dataset)
+        							quantized_dtype=self.qtype, hybrid_rate=self.hybrid_rate,
+        							target_platform=self.platform, num_npu_core=self.npu_cores,
+        							extra_qparams=self.qparams, dataset=self.dataset)
         if status != 0:
             raise RuntimeError(f"Failed to build model: {status}")
         else:
