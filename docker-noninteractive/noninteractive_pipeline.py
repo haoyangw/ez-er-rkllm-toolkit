@@ -55,6 +55,7 @@ class RKLLMRemotePipeline:
         shutil.rmtree(path)
         
     def build_vars(self):
+        self.hybrid_rate = float(self.hybrid_rate)
         if self.platform == "rk3588":
             self.npu_cores = 3
         elif self.platform == "rk3576":
