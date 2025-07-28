@@ -14,7 +14,7 @@ RUN DEBIAN_FRONTEND=noninteractive \
 
 COPY ./rkllm_toolkit-1.1.4-cp310-cp310-linux_x86_64.whl /root/wheels
 
-RUN python3 -m pip install inquirer /root/wheels/rkllm_toolkit-1.1.4-cp310-cp310-linux_x86_64.whl xformers
+RUN python3 -m pip install pyarrow==20.0.0 inquirer /root/wheels/rkllm_toolkit-1.1.4-cp310-cp310-linux_x86_64.whl xformers
 
 COPY ./interactive_pipeline.py /root/toolkit/
 
